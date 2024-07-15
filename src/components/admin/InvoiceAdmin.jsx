@@ -1,0 +1,99 @@
+import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { DataGrid } from '@mui/x-data-grid';
+import { Box, Button, Container, Grid, Paper, Stack, Typography } from "@mui/material";
+import useOrder from '../../hooks/useOrder';
+
+export default function InvoiceAdmin() {
+  const { error, fetchAllInvoice } = useOrder();
+  const [detailData, setDetailData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      //if (orderId) {
+        try {
+          const data = await fetchAllInvoice();
+          setDetailData(data);
+          console.log("Response from API:", data); // Periksa respons dari API
+        } catch (error) {
+          console.error('Error fetching detail invoice:', error);
+        }
+      //}
+    };
+    fetchData();
+  }, []);
+
+  const newData = detailData?.map((invoice, index) => ({
+    id: invoice.id || index,  // Use invoice.id as the id if available, otherwise use index
+    number: index + 1,
+    namaPemesan: invoice.namaPemesan,
+    noInvoice: invoice.noInvoice,
+    tanggalBeli: invoice.tanggalBeli,
+    jumlahKursus: invoice.jumlahKursus,
+    totalHarga: `Rp ${invoice.totalHarga.toLocaleString('id-ID')},-`,
+
+  })) || [];
+
+
+  const columns = [
+    { field: 'number', headerName: 'No', width: 70, headerClassName: 'header-bold' },
+    { field: 'namaPemesan', headerName: 'Nama Pemesan', width: 200, headerClassName: 'header-bold' },
+    { field: 'noInvoice', headerName: 'No. Invoice', width: 200, headerClassName: 'header-bold' },
+    { field: 'tanggalBeli', headerName: 'Tanggal Beli', width: 200, headerClassName: 'header-bold' },
+    { field: 'jumlahKursus', headerName: 'Jumlah Kursus', width: 200, headerClassName: 'header-bold' },
+    { field: 'totalHarga', headerName: 'Total Harga', width: 200, headerClassName: 'header-bold' },
+    {
+      field: 'id',
+      headerName: 'Action',
+      width: 150,
+      headerClassName: 'header-bold',
+      sortable: false,
+      renderCell: (params) => (
+        <Link to={`/detinvoiceadm/${params.row.id}/${params.row.namaPemesan}`}>
+            <Button
+              variant="contained"
+              style={{ backgroundColor: "#5D5FEF" }}
+            >
+              Rincian
+            </Button>
+        </Link>
+      ),
+
+    },
+  ];
+  
+  return (
+    <Container>
+      <Grid Container spacing ={4} sx = {{marginTop : '100px'}}>
+                 <Grid item lg ={12} xs= {12}>
+                    <Stack direction='row'>
+                    <Typography variant="body2" style={{ display: 'flex', alignItems: 'center', fontWeight: 'light', color: 'black', marginBottom: '20px',  }}>
+                    Beranda
+                    <span style={{ marginLeft: '10px' }}>&gt;</span>
+                    </Typography>
+                                         
+                    <Typography Typography variant="body2" style={{ marginLeft: '10px',display: 'flex', alignItems: 'center', fontWeight: 'light', color: '#5D5FEF', marginBottom: '20px' }}>
+                    Invoice
+                    </Typography>
+                    
+                    </Stack>
+                </Grid>
+        </Grid>
+
+      <Grid Container spacing={4} sx={{ marginTop: '10px' }}>
+        <Grid item lg={12} xs={4}>
+          <Typography variant="body1" style={{ display: 'flex', alignItems: 'center', fontWeight: 'bold', color: 'black', marginBottom: '20px' }}>
+            Invoice
+          </Typography>
+        </Grid>
+      </Grid>
+
+      <Box style={{ width: '100%', marginTop: '20px', marginBottom: '100px' }}>
+        <div style={{ height: 350, width: '100%', marginBottom: '200px' }}>
+          <DataGrid rows={newData} columns={columns} />
+        </div>
+      </Box>
+    </Container>
+  );
+}
